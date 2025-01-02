@@ -36,4 +36,3 @@ public class Member extends BaseTime {
         return this.password.equals(password);
     }
 }
-
