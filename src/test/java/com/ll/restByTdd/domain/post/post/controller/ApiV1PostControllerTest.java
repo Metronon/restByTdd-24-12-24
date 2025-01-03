@@ -57,7 +57,9 @@ public class ApiV1PostControllerTest {
                 .andExpect(jsonPath("$.authorId").value(post.getAuthor().getId()))
                 .andExpect(jsonPath("$.authorName").value(post.getAuthor().getName()))
                 .andExpect(jsonPath("$.title").value(post.getTitle()))
-                .andExpect(jsonPath("$.content").value(post.getContent()));
+                .andExpect(jsonPath("$.content").value(post.getContent()))
+                .andExpect(jsonPath("$.published").value(post.isPublished()))
+                .andExpect(jsonPath("$.listed").value(post.isListed()));
     }
 
     @Test
@@ -89,7 +91,9 @@ public class ApiV1PostControllerTest {
                                 .content("""
                                         {
                                             "title": "제목 new",
-                                            "content": "내용 new"
+                                            "content": "내용 new",
+                                            "published": true,
+                                            "listed": false
                                         }
                                         """)
                                 .contentType(
@@ -114,7 +118,9 @@ public class ApiV1PostControllerTest {
                 .andExpect(jsonPath("$.data.authorId").value(post.getAuthor().getId()))
                 .andExpect(jsonPath("$.data.authorName").value(post.getAuthor().getName()))
                 .andExpect(jsonPath("$.data.title").value(post.getTitle()))
-                .andExpect(jsonPath("$.data.content").value(post.getContent()));
+                .andExpect(jsonPath("$.data.content").value(post.getContent()))
+                .andExpect(jsonPath("$.data.published").value(post.isPublished()))
+                .andExpect(jsonPath("$.data.listed").value(post.isListed()));
     }
 
     @Test
@@ -192,7 +198,9 @@ public class ApiV1PostControllerTest {
                                 .content("""
                                         {
                                             "title": "축구 하실 분 계신가요?",
-                                            "content": "14시 까지 22명을 모아야 진행이 됩니다."
+                                            "content": "14시 까지 22명을 모아야 진행이 됩니다.",
+                                            "published": true,
+                                            "listed": false
                                         }
                                         """)
                                 .contentType(
@@ -213,7 +221,9 @@ public class ApiV1PostControllerTest {
                 .andExpect(jsonPath("$.data.authorId").value(post.getAuthor().getId()))
                 .andExpect(jsonPath("$.data.authorName").value(post.getAuthor().getName()))
                 .andExpect(jsonPath("$.data.title").value("축구 하실 분 계신가요?"))
-                .andExpect(jsonPath("$.data.content").value("14시 까지 22명을 모아야 진행이 됩니다."));
+                .andExpect(jsonPath("$.data.content").value("14시 까지 22명을 모아야 진행이 됩니다."))
+                .andExpect(jsonPath("$.data.published").value(true))
+                .andExpect(jsonPath("$.data.listed").value(false));
     }
 
     @Test
@@ -426,5 +436,25 @@ public class ApiV1PostControllerTest {
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.resultCode").value("401-1"))
                 .andExpect(jsonPath("$.msg").value("apiKey를 입력해주세요."));
+    }
+
+    @Test
+    @DisplayName("비공개글 6번글 조회, with no permission")
+    void t16() throws Exception {
+        Member actor = memberService.findByUsername("user1").get();
+
+        ResultActions resultActions = mvc
+                .perform(
+                        get("/api/v1/posts/6")
+                                .header("Authorization", "Bearer " + actor.getApiKey())
+                )
+                .andDo(print());
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1PostController.class))
+                .andExpect(handler().methodName("item"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.resultCode").value("403-1"))
+                .andExpect(jsonPath("$.msg").value("비공개글은 작성자만 볼 수 있습니다."));
     }
 }
