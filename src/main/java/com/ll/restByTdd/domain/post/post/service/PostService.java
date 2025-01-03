@@ -9,8 +9,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
-@Service
-@RequiredArgsConstructor
 public class PostService {
     private final PostRepository postRepository;
 
@@ -18,12 +16,13 @@ public class PostService {
         return postRepository.count();
     }
 
-    public Post write(Member author, String title, String content, boolean published) {
+    public Post write(Member author, String title, String content, boolean published, boolean listed) {
         Post post = Post.builder()
                 .author(author)
                 .title(title)
                 .content(content)
                 .published(published)
+                .listed(listed)
                 .build();
 
         return postRepository.save(post);
@@ -41,9 +40,11 @@ public class PostService {
         postRepository.delete(post);
     }
 
-    public void modify(Post post, String title, String content) {
+    public void modify(Post post, String title, String content, boolean published, boolean listed) {
         post.setTitle(title);
         post.setContent(content);
+        post.setPublished(published);
+        post.setListed(listed);
     }
 
     public void flush() {
