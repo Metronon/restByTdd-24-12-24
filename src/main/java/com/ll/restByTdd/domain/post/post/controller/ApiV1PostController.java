@@ -11,10 +11,12 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotBlank;
+import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/posts")
@@ -24,15 +26,23 @@ public class ApiV1PostController {
     private final Rq rq;
 
     @GetMapping
-    public List<PostDto> items(
+    public Map<String, Object> items(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int pageSize
     ) {
-        List<Post> posts = postService.findByListedPaged(true, page, pageSize);
+        Page<Post> postPage = postService.findByListedPaged(true, page, pageSize);
 
-        return posts.stream()
+        long totalItems = postPage.getTotalElements();
+        List<PostDto> items = postPage
+                .getContent()
+                .stream()
                 .map(PostDto::new)
                 .toList();
+
+        return Map.of(
+                "totalItems", totalItems,
+                "items", items
+        );
     }
 
     @GetMapping("/{id}")
