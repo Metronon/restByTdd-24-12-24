@@ -38,10 +38,14 @@ public class ApiV1PostController {
                 .stream()
                 .map(PostDto::new)
                 .toList();
+        long totalPages = postPage.getTotalPages();
 
         return Map.of(
                 "totalItems", totalItems,
-                "items", items
+                "items", items,
+                "totalPages", totalPages,
+                "currentPageNumber", page,
+                "pageSize", pageSize
         );
     }
 
@@ -144,3 +148,4 @@ public class ApiV1PostController {
         return new RsData<>("200-1", "%d번 글이 삭제되었습니다.".formatted(id));
     }
 }
+
