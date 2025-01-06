@@ -22,15 +22,28 @@ public class ApiV1PostController {
     private final PostService postService;
     private final Rq rq;
 
-    @GetMapping
-    public PageDto<PostDto> items(
+    @GetMapping("/mine")
+    public PageDto<PostDto> mine(
             @RequestParam(defaultValue = "title") String searchKeywordType,
             @RequestParam(defaultValue = "") String searchKeyword,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int pageSize
     ) {
+        Member actor = rq.checkAuthentication();
+
         return new PageDto<>(
-                postService.findByListedPaged(true, searchKeywordType, searchKeyword, page, pageSize)
+                postService.findByAuthorPaged(actor, searchKeywordType, searchKeyword, page, pageSize)
+                        .map(PostDto::new)
+        );
+    }
+
+    @GetMapping
+    public PageDto<PostDto> items(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int pageSize
+    ) {
+        return new PageDto<>(
+                postService.findByListedPaged(true, page, pageSize)
                         .map(PostDto::new)
         );
     }
@@ -134,4 +147,3 @@ public class ApiV1PostController {
         return new RsData<>("200-1", "%d번 글이 삭제되었습니다.".formatted(id));
     }
 }
-
